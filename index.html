@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Fitness Tracker — Longevity Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F1117;
+  --bg-card: #181B24;
+  --bg-card-hover: #1E2230;
+  --bg-input: #12141B;
+  --border: #2A2E3B;
+  --border-focus: #4A9EFF;
+  --text: #E4E7EF;
+  --text-dim: #8B90A0;
+  --text-muted: #5A5F72;
+  --accent: #4A9EFF;
+  --accent-dim: rgba(74,158,255,0.12);
+  --red: #FF6B6B;
+  --red-dim: rgba(255,107,107,0.12);
+  --amber: #FFB347;
+  --amber-dim: rgba(255,179,71,0.12);
+  --green: #6BCB77;
+  --green-dim: rgba(107,203,119,0.12);
+  --purple: #B8A9FF;
+  --purple-dim: rgba(184,169,255,0.12);
+  --cyan: #5CE0D8;
+  --cyan-dim: rgba(92,224,216,0.12);
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Fraunces', serif;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  body { background: white; color: #1a1a1a; font-size: 11px; }
+  .no-print { display: none !important; }
+  .card { break-inside: avoid; border: 1px solid #ddd; background: white; box-shadow: none; }
+  .day-section { break-inside: avoid; }
+  input[type="text"], input[type="number"] { border: 1px solid #ccc !important; background: #f9f9f9 !important; color: #1a1a1a !important; }
+  .header { background: #1a3a5c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .check-item input[type="checkbox"] { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ===== LAYOUT ===== */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: linear-gradient(135deg, #141824 0%, #1A2744 50%, #0F1117 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 40px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(74,158,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.header h1 span { color: var(--accent); }
+.header-subtitle {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.week-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.week-input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.week-input-group input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 80px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.week-input-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.week-input-group input[type="date"] { width: 160px; }
+
+/* Stats bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.stat-item {
+  text-align: center;
+}
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.stat-value.red { color: var(--red); }
+.stat-value.green { color: var(--green); }
+.stat-value.amber { color: var(--amber); }
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 2px;
+}
+
+/* ===== WEEKLY MEASUREMENTS ===== */
+.measurements-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+.measurements-card h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.measurements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.measure-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.measure-item label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.measure-item input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 8px 12px;
+  transition: border-color 0.2s;
+}
+.measure-item input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.measure-item .unit {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== DAY SECTIONS ===== */
+.day-section {
+  margin-bottom: 24px;
+}
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+.day-header:hover { filter: brightness(1.1); }
+.day-header.wed { background: linear-gradient(90deg, #1A3352, #1A2744); border-left: 4px solid var(--accent); }
+.day-header.thu { background: linear-gradient(90deg, #3D1F2E, #2A1A2E); border-left: 4px solid var(--red); }
+.day-header.sat { background: linear-gradient(90deg, #1A3328, #1A2E24); border-left: 4px solid var(--green); }
+.day-header.sun { background: linear-gradient(90deg, #2E2A1A, #2A2618); border-left: 4px solid var(--amber); }
+
+.day-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.wed .day-tag { background: var(--accent-dim); color: var(--accent); }
+.thu .day-tag { background: var(--red-dim); color: var(--red); }
+.sat .day-tag { background: var(--green-dim); color: var(--green); }
+.sun .day-tag { background: var(--amber-dim); color: var(--amber); }
+
+.day-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+}
+.day-duration {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.day-toggle {
+  font-size: 18px;
+  color: var(--text-dim);
+  transition: transform 0.3s;
+}
+.day-section.collapsed .day-toggle { transform: rotate(-90deg); }
+.day-section.collapsed .day-body { display: none; }
+
+.day-body {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 0;
+}
+
+/* ===== BLOCKS ===== */
+.block {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.block:last-child { border-bottom: none; }
+
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.block-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.block-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.block-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.badge-z2 { background: var(--accent-dim); color: var(--accent); }
+.badge-vo2 { background: var(--red-dim); color: var(--red); }
+.badge-str { background: var(--purple-dim); color: var(--purple); }
+.badge-mob { background: var(--cyan-dim); color: var(--cyan); }
+.badge-core { background: var(--amber-dim); color: var(--amber); }
+
+.block-note {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  padding-left: 4px;
+  font-style: italic;
+}
+
+/* ===== EXERCISE ROWS ===== */
+.exercise-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.exercise-table th {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.exercise-table th.center { text-align: center; }
+
+.exercise-row td {
+  padding: 8px 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 13px;
+}
+.exercise-row:last-child td { border-bottom: none; }
+
+.exercise-row:hover td { background: rgba(255,255,255,0.02); }
+
+/* Checkbox */
+.check-cell {
+  width: 36px;
+  text-align: center;
+}
+.check-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.exercise-name {
+  font-weight: 500;
+  color: var(--text);
+}
+.exercise-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.exercise-prescription {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* Data entry cells */
+.data-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 5px 8px;
+  width: 100%;
+  min-width: 55px;
+  max-width: 80px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.data-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+.data-input::placeholder { color: var(--text-muted); font-size: 11px; }
+
+.data-input.wide { max-width: 120px; }
+
+/* Cardio tracking */
+.cardio-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 4px 0;
+}
+.cardio-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cardio-field label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.cardio-field input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 7px 10px;
+  transition: border-color 0.2s;
+}
+.cardio-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+/* ===== MOBILITY CHECKLIST ===== */
+.mobility-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 20px;
+}
+.mobility-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.mobility-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--cyan);
+  cursor: pointer;
+}
+.mobility-item span {
+  font-size: 13px;
+  color: var(--text);
+}
+.mobility-item .mob-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== SESSION NOTES ===== */
+.session-notes {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.session-notes label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: block;
+  margin-bottom: 6px;
+}
+.session-notes textarea {
+  width: 100%;
+  min-height: 56px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 10px 12px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+.session-notes textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* ===== WEEKLY JOURNAL ===== */
+.journal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-top: 32px;
+}
+.journal-card h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.journal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.journal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.journal-field.full { grid-column: 1 / -1; }
+.journal-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.journal-field input, .journal-field textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 10px 12px;
+  transition: border-color 0.2s;
+}
+.journal-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.journal-field input:focus, .journal-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Ratings */
+.rating-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.rating-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rating-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rating-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+/* ===== REFERENCE SECTION ===== */
+.ref-toggle {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 32px;
+  overflow: hidden;
+}
+.ref-toggle-header {
+  padding: 16px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  transition: background 0.2s;
+}
+.ref-toggle-header:hover { background: var(--bg-card-hover); }
+.ref-toggle-header h2 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+.ref-toggle-body {
+  padding: 0 24px 24px;
+  display: none;
+}
+.ref-toggle.open .ref-toggle-body { display: block; }
+.ref-toggle .arrow { transition: transform 0.3s; color: var(--text-dim); }
+.ref-toggle.open .arrow { transform: rotate(90deg); }
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 13px;
+}
+.ref-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.ref-table td {
+  padding: 8px 10px;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.ref-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15,17,23,0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  z-index: 100;
+}
+.toolbar-btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toolbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+.toolbar-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.toolbar-btn.primary:hover { filter: brightness(1.1); }
+.toolbar-btn.danger { border-color: var(--red); color: var(--red); }
+.toolbar-btn.danger:hover { background: var(--red-dim); }
+
+/* ===== PROGRESS INDICATOR ===== */
+.progress-ring {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.progress-item {
+  text-align: center;
+}
+.progress-circle {
+  width: 52px;
+  height: 52px;
+  position: relative;
+}
+.progress-circle svg { transform: rotate(-90deg); }
+.progress-circle .bg { stroke: var(--border); }
+.progress-circle .fill { transition: stroke-dashoffset 0.5s ease; }
+.progress-pct {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+.progress-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container { padding: 12px 10px 80px; }
+  .header { padding: 24px 20px; }
+  .header h1 { font-size: 22px; }
+  .stats-bar { grid-template-columns: repeat(3, 1fr); }
+  .measurements-grid { grid-template-columns: 1fr 1fr; }
+  .block { padding: 14px 16px; }
+  .mobility-grid { grid-template-columns: 1fr; }
+  .journal-grid { grid-template-columns: 1fr; }
+  .exercise-table { font-size: 12px; }
+  .day-title { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Weekly <span>Fitness Tracker</span></h1>
+        <div class="header-subtitle">Longevity-Focused Health Transformation Plan</div>
+      </div>
+      <div class="week-input-group">
+        <div>
+          <label>Week #</label><br>
+          <input type="number" id="weekNum" placeholder="1" min="1" max="26">
+        </div>
+        <div>
+          <label>Start Date</label><br>
+          <input type="date" id="weekDate">
+        </div>
+        <div>
+          <label>Phase</label><br>
+          <input type="text" id="phase" placeholder="e.g. Build" style="width:100px">
+        </div>
+      </div>
+    </div>
+
+    <!-- Completion progress -->
+    <div class="progress-ring" id="progressRing">
+      <div class="progress-item">
+        <div class="progress-circle">
+          <svg width="52" height="52"><circle class="bg" cx="26" cy="26" r="20" fill="none" stroke-width="4"/><circle class="fill" id="progWed" cx="26" cy="26" r="20" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"/></svg>
+          <span class="progress-pct" id="pctWed">0%</span>
+        </div>
+        <div class="progress-label">Wed</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-circle">
+          <svg width="52" height="52"><circle class="bg" cx="26" cy="26" r="20" fill="none" stroke-width="4"/><circle class="fill" id="progThu" cx="26" cy="26" r="20" fill="none" stroke="var(--red)" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"/></svg>
+          <span class="progress-pct" id="pctThu">0%</span>
+        </div>
+        <div class="progress-label">Thu</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-circle">
+          <svg width="52" height="52"><circle class="bg" cx="26" cy="26" r="20" fill="none" stroke-width="4"/><circle class="fill" id="progSat" cx="26" cy="26" r="20" fill="none" stroke="var(--green)" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"/></svg>
+          <span class="progress-pct" id="pctSat">0%</span>
+        </div>
+        <div class="progress-label">Sat</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-circle">
+          <svg width="52" height="52"><circle class="bg" cx="26" cy="26" r="20" fill="none" stroke-width="4"/><circle class="fill" id="progSun" cx="26" cy="26" r="20" fill="none" stroke="var(--amber)" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"/></svg>
+          <span class="progress-pct" id="pctSun">0%</span>
+        </div>
+        <div class="progress-label">Sun</div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-circle">
+          <svg width="52" height="52"><circle class="bg" cx="26" cy="26" r="20" fill="none" stroke-width="4"/><circle class="fill" id="progAll" cx="26" cy="26" r="20" fill="none" stroke="white" stroke-width="4.5" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"/></svg>
+          <span class="progress-pct" id="pctAll" style="font-size:13px;font-weight:700">0%</span>
+        </div>
+        <div class="progress-label">Total</div>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-value red" id="statVisceral">12</div><div class="stat-label">Visceral Fat</div></div>
+      <div class="stat-item"><div class="stat-value amber">30.7%</div><div class="stat-label">Body Fat</div></div>
+      <div class="stat-item"><div class="stat-value">90.3</div><div class="stat-label">Weight (kg)</div></div>
+      <div class="stat-item"><div class="stat-value green">35.9</div><div class="stat-label">SMM (kg)</div></div>
+      <div class="stat-item"><div class="stat-value">30.9</div><div class="stat-label">BMI</div></div>
+      <div class="stat-item"><div class="stat-value red">L:92%</div><div class="stat-label">Leg Deficit</div></div>
+    </div>
+  </div>
+
+  <!-- ===== WEEKLY MEASUREMENTS ===== -->
+  <div class="measurements-card">
+    <h2>📏 Weekly Measurements</h2>
+    <div class="measurements-grid">
+      <div class="measure-item"><label>Weight (kg)</label><input type="number" step="0.1" placeholder="90.3"></div>
+      <div class="measure-item"><label>Waist (cm)</label><input type="number" step="0.5" placeholder="at navel"></div>
+      <div class="measure-item"><label>Avg Sleep (hrs)</label><input type="number" step="0.1" placeholder="7.0"></div>
+      <div class="measure-item"><label>Daily Protein Est. (g)</label><input type="number" placeholder="150"></div>
+      <div class="measure-item"><label>Daily Water (L)</label><input type="number" step="0.1" placeholder="3.0"></div>
+      <div class="measure-item"><label>Steps/Day Avg</label><input type="number" placeholder="8000"></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- WEDNESDAY -->
+  <!-- ============================================ -->
+  <div class="day-section" id="dayWed" data-day="wed">
+    <div class="day-header wed" onclick="toggleDay('dayWed')">
+      <span class="day-tag">WED</span>
+      <span class="day-title">Aerobic Base + Full Body Primer</span>
+      <span class="day-duration">45 min</span>
+      <span class="day-toggle">▼</span>
+    </div>
+    <div class="day-body">
+      <!-- Zone 2 -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:03 — 0:28</span>
+          <span class="block-name">Zone 2 Cardio</span>
+          <span class="block-badge badge-z2">Z2 · 25 min</span>
+        </div>
+        <div class="block-note">HR: 112–130 bpm · Must hold conversation · Incline walk or bike</div>
+        <div class="cardio-track">
+          <div class="cardio-field"><label>Modality</label><input type="text" placeholder="Incline walk / bike"></div>
+          <div class="cardio-field"><label>Duration (min)</label><input type="number" placeholder="25"></div>
+          <div class="cardio-field"><label>Avg HR (bpm)</label><input type="number" placeholder="120"></div>
+          <div class="cardio-field"><label>Max HR (bpm)</label><input type="number" placeholder="128"></div>
+          <div class="cardio-field"><label>Distance / Speed</label><input type="text" placeholder="e.g. 5.5 km/h"></div>
+          <div class="cardio-field"><label>✓ Done</label><input type="checkbox" class="day-check" data-day="wed" style="width:20px;height:20px;accent-color:var(--green)"></div>
+        </div>
+      </div>
+
+      <!-- Strength -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:28 — 0:43</span>
+          <span class="block-name">Full Body A — Superset Circuit</span>
+          <span class="block-badge badge-str">STR · 15 min</span>
+        </div>
+        <div class="block-note">Superset A1/A2 → 60s rest → B1/B2 → 60s rest → C1</div>
+        <table class="exercise-table">
+          <thead><tr><th style="width:36px">✓</th><th>Exercise</th><th>Rx</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="wed"></td><td><div class="exercise-name">A1: Goblet Squat</div><div class="exercise-detail">Tempo: 3-1-1-0 · Legs + core</div></td><td class="exercise-prescription">3×10-12</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="wed"></td><td><div class="exercise-name">A2: Push-ups</div><div class="exercise-detail">Incline → floor · Tempo: 2-1-1-0</div></td><td class="exercise-prescription">3×8-12</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="wed"></td><td><div class="exercise-name">B1: Dumbbell Row</div><div class="exercise-detail">Tempo: 2-1-1-0 · Each side</div></td><td class="exercise-prescription">3×10/side</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="wed"></td><td><div class="exercise-name">B2: Glute Bridge</div><div class="exercise-detail">Tempo: 2-2-1-0 · Drive through heels</div></td><td class="exercise-prescription">3×12-15</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="wed"></td><td><div class="exercise-name">C1: Dead Bug</div><div class="exercise-detail">Slow controlled · Anti-extension</div></td><td class="exercise-prescription">2×10/side</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobility -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:43 — 0:45</span>
+          <span class="block-name">Quick Mobility</span>
+          <span class="block-badge badge-mob">MOB · 2 min</span>
+        </div>
+        <div class="mobility-grid">
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="wed"><span>Cat-Cow ×8 reps</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="wed"><span>World's Greatest Stretch ×3/side</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="session-notes">
+          <label>Session Notes</label>
+          <textarea placeholder="How did you feel? Energy level, pain, observations..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- THURSDAY -->
+  <!-- ============================================ -->
+  <div class="day-section" id="dayThu" data-day="thu">
+    <div class="day-header thu" onclick="toggleDay('dayThu')">
+      <span class="day-tag">THU</span>
+      <span class="day-title">VO2 Max + Core Stability</span>
+      <span class="day-duration">45 min</span>
+      <span class="day-toggle">▼</span>
+    </div>
+    <div class="day-body">
+      <!-- VO2 Max -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:05 — 0:25</span>
+          <span class="block-name">VO2 Max Intervals (4×4 Protocol)</span>
+          <span class="block-badge badge-vo2">VO2 · 20 min</span>
+        </div>
+        <div class="block-note">Wk 1–4: 3×3min hard / 3min easy · Wk 5–12: 4×4min / 3min · Wk 13+: 4×4min / 2.5min</div>
+        <div class="cardio-track">
+          <div class="cardio-field"><label>Modality</label><input type="text" placeholder="Bike / treadmill"></div>
+          <div class="cardio-field"><label>Intervals Done</label><input type="text" placeholder="e.g. 4×4min"></div>
+          <div class="cardio-field"><label>Avg Work HR</label><input type="number" placeholder="165"></div>
+          <div class="cardio-field"><label>Peak HR</label><input type="number" placeholder="175"></div>
+          <div class="cardio-field"><label>Recovery HR</label><input type="number" placeholder="115"></div>
+          <div class="cardio-field"><label>RPE (1-10)</label><input type="number" min="1" max="10" placeholder="8"></div>
+          <div class="cardio-field"><label>✓ Done</label><input type="checkbox" class="day-check" data-day="thu" style="width:20px;height:20px;accent-color:var(--green)"></div>
+        </div>
+      </div>
+
+      <!-- Core -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:25 — 0:40</span>
+          <span class="block-name">Core & Anti-Rotation Circuit</span>
+          <span class="block-badge badge-core">CORE · 15 min</span>
+        </div>
+        <div class="block-note">3 rounds, 30s rest between rounds</div>
+        <table class="exercise-table">
+          <thead><tr><th style="width:36px">✓</th><th>Exercise</th><th>Rx</th><th>Rd 1</th><th>Rd 2</th><th>Rd 3</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="thu"></td><td><div class="exercise-name">Front Plank</div><div class="exercise-detail">Anti-extension · Brace hard</div></td><td class="exercise-prescription">30-60s</td><td><input class="data-input" placeholder="sec"></td><td><input class="data-input" placeholder="sec"></td><td><input class="data-input" placeholder="sec"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="thu"></td><td><div class="exercise-name">Side Plank</div><div class="exercise-detail">Each side · Anti-lateral flexion</div></td><td class="exercise-prescription">20-40s/side</td><td><input class="data-input" placeholder="sec"></td><td><input class="data-input" placeholder="sec"></td><td><input class="data-input" placeholder="sec"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="thu"></td><td><div class="exercise-name">Bird Dog</div><div class="exercise-detail">3s hold at top · Each side</div></td><td class="exercise-prescription">8/side</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="thu"></td><td><div class="exercise-name">Dead Bug</div><div class="exercise-detail">Slow controlled · Each side</div></td><td class="exercise-prescription">8/side</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="thu"></td><td><div class="exercise-name">Pallof Press</div><div class="exercise-detail">Tempo: 2-2-2-0 · Each side</div></td><td class="exercise-prescription">10/side</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input wide" placeholder="notes"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Stretch -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:40 — 0:45</span>
+          <span class="block-name">Targeted Stretching</span>
+          <span class="block-badge badge-mob">MOB · 5 min</span>
+        </div>
+        <div class="mobility-grid">
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="thu"><span>Hip Flexor Stretch 60s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="thu"><span>Hamstring Stretch 60s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="thu"><span>Chest Doorway Stretch 60s</span></div>
+        </div>
+      </div>
+
+      <div class="block"><div class="session-notes"><label>Session Notes</label><textarea placeholder="How hard were the intervals? Could you recover between sets?"></textarea></div></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SATURDAY -->
+  <!-- ============================================ -->
+  <div class="day-section" id="daySat" data-day="sat">
+    <div class="day-header sat" onclick="toggleDay('daySat')">
+      <span class="day-tag">SAT</span>
+      <span class="day-title">Long Aerobic + Upper Body + Deep Mobility</span>
+      <span class="day-duration">2 hours</span>
+      <span class="day-toggle">▼</span>
+    </div>
+    <div class="day-body">
+      <!-- Zone 2 long -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:05 — 0:50</span>
+          <span class="block-name">Zone 2 Cardio — Long Session</span>
+          <span class="block-badge badge-z2">Z2 · 45 min</span>
+        </div>
+        <div class="block-note">HR: 112–130 bpm strict · Longest Z2 session of the week · Peak fat oxidation</div>
+        <div class="cardio-track">
+          <div class="cardio-field"><label>Modality</label><input type="text" placeholder="Jog / cycle / swim"></div>
+          <div class="cardio-field"><label>Duration (min)</label><input type="number" placeholder="45"></div>
+          <div class="cardio-field"><label>Avg HR</label><input type="number" placeholder="122"></div>
+          <div class="cardio-field"><label>Max HR</label><input type="number" placeholder="130"></div>
+          <div class="cardio-field"><label>Distance</label><input type="text" placeholder="e.g. 5.2 km"></div>
+          <div class="cardio-field"><label>✓ Done</label><input type="checkbox" class="day-check" data-day="sat" style="width:20px;height:20px;accent-color:var(--green)"></div>
+        </div>
+      </div>
+
+      <!-- Upper Body -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:55 — 1:35</span>
+          <span class="block-name">Upper Body — Push/Pull Balance</span>
+          <span class="block-badge badge-str">STR · 40 min</span>
+        </div>
+        <div class="block-note">Maintain upper body lean mass (110–111%) · Shoulder health focus</div>
+        <table class="exercise-table">
+          <thead><tr><th style="width:36px">✓</th><th>Exercise</th><th>Rx</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Set 4</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sat"></td><td><div class="exercise-name">DB Bench Press</div><div class="exercise-detail">Tempo: 3-1-1-0 · 90s rest</div></td><td class="exercise-prescription">4×8-10</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sat"></td><td><div class="exercise-name">Bent-over Row</div><div class="exercise-detail">Tempo: 2-1-1-1 · 90s rest</div></td><td class="exercise-prescription">4×8-10</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sat"></td><td><div class="exercise-name">Overhead Press</div><div class="exercise-detail">Tempo: 2-1-1-0 · 90s rest</div></td><td class="exercise-prescription">3×8-10</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sat"></td><td><div class="exercise-name">Face Pulls</div><div class="exercise-detail">Band/cable · Tempo: 2-1-2-0</div></td><td class="exercise-prescription">3×15-20</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sat"></td><td><div class="exercise-name">Farmer's Carry</div><div class="exercise-detail">Grip + core · 60s rest</div></td><td class="exercise-prescription">3×30-40m</td><td><input class="data-input" placeholder="kg×dist"></td><td><input class="data-input" placeholder="kg×dist"></td><td><input class="data-input" placeholder="kg×dist"></td><td></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sat"></td><td><div class="exercise-name">Pallof Press</div><div class="exercise-detail">Tempo: 2-2-2-0 · Each side</div></td><td class="exercise-prescription">3×10/side</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td></td><td><input class="data-input wide" placeholder=""></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobility -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">1:35 — 2:00</span>
+          <span class="block-name">Deep Mobility Routine</span>
+          <span class="block-badge badge-mob">MOB · 25 min</span>
+        </div>
+        <div class="block-note">Hold each 60–90 seconds · Breathe through nose · Parasympathetic activation</div>
+        <div class="mobility-grid">
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Cat-Cow ×10</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>World's Greatest Stretch ×5/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>90/90 Hip Switch ×8/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Deep Squat Hold 3×45-60s</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Thread the Needle ×8/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Couch Stretch 60-90s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Pigeon Stretch 60-90s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Supine Spinal Twist 60-90s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Down Dog ↔ Cobra Flow ×8</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sat"><span>Child's Pose w/ Reach 60-90s</span></div>
+        </div>
+      </div>
+
+      <div class="block"><div class="session-notes"><label>Session Notes</label><textarea placeholder="Energy during long Z2? Upper body strength changes?"></textarea></div></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SUNDAY -->
+  <!-- ============================================ -->
+  <div class="day-section" id="daySun" data-day="sun">
+    <div class="day-header sun" onclick="toggleDay('daySun')">
+      <span class="day-tag">SUN</span>
+      <span class="day-title">Aerobic + LOWER BODY PRIORITY + Yoga Recovery</span>
+      <span class="day-duration">2 hours</span>
+      <span class="day-toggle">▼</span>
+    </div>
+    <div class="day-body">
+      <!-- Zone 2 -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:05 — 0:35</span>
+          <span class="block-name">Zone 2 Cardio</span>
+          <span class="block-badge badge-z2">Z2 · 30 min</span>
+        </div>
+        <div class="block-note">HR: 112–130 bpm · Keep easy — save energy for squats</div>
+        <div class="cardio-track">
+          <div class="cardio-field"><label>Modality</label><input type="text" placeholder="Walk / light jog"></div>
+          <div class="cardio-field"><label>Duration (min)</label><input type="number" placeholder="30"></div>
+          <div class="cardio-field"><label>Avg HR</label><input type="number" placeholder="118"></div>
+          <div class="cardio-field"><label>Max HR</label><input type="number" placeholder="128"></div>
+          <div class="cardio-field"><label>Distance</label><input type="text" placeholder="e.g. 3.5 km"></div>
+          <div class="cardio-field"><label>✓ Done</label><input type="checkbox" class="day-check" data-day="sun" style="width:20px;height:20px;accent-color:var(--green)"></div>
+        </div>
+      </div>
+
+      <!-- Lower Body -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">0:40 — 1:30</span>
+          <span class="block-name">Lower Body — PRIORITY SESSION</span>
+          <span class="block-badge badge-str" style="background:var(--red-dim);color:var(--red)">★ LEG PRIORITY · 50 min</span>
+        </div>
+        <div class="block-note" style="color:var(--red)">Your #1 strength session. Legs at 92–94% — must correct. Log every set. Progressive overload.</div>
+        <table class="exercise-table">
+          <thead><tr><th style="width:36px">✓</th><th>Exercise</th><th>Rx</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Set 4</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sun"></td><td><div class="exercise-name">Barbell Back Squat</div><div class="exercise-detail">Tempo: 3-1-1-0 · 2-3min rest · KING</div></td><td class="exercise-prescription">4×6-8</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sun"></td><td><div class="exercise-name">Romanian Deadlift</div><div class="exercise-detail">Tempo: 3-1-1-0 · 90s rest · Hamstrings</div></td><td class="exercise-prescription">4×8-10</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sun"></td><td><div class="exercise-name">Bulgarian Split Squat</div><div class="exercise-detail">Tempo: 2-1-1-0 · 60s rest · Each leg</div></td><td class="exercise-prescription">3×10/leg</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td></td><td><input class="data-input wide" placeholder="L/R diff?"></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sun"></td><td><div class="exercise-name">Walking Lunges / Leg Press</div><div class="exercise-detail">Alternate weekly · 60s rest</div></td><td class="exercise-prescription">3×12/leg</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sun"></td><td><div class="exercise-name">Standing Calf Raises</div><div class="exercise-detail">Tempo: 2-1-2-0 · 45s rest</div></td><td class="exercise-prescription">4×15-20</td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input" placeholder="kg×reps"></td><td><input class="data-input wide" placeholder=""></td></tr>
+            <tr class="exercise-row"><td class="check-cell"><input type="checkbox" class="day-check" data-day="sun"></td><td><div class="exercise-name">Hanging Knee Raise</div><div class="exercise-detail">Progress to straight leg</div></td><td class="exercise-prescription">3×10-15</td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td><input class="data-input" placeholder="reps"></td><td></td><td><input class="data-input wide" placeholder=""></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Yoga -->
+      <div class="block">
+        <div class="block-header">
+          <span class="block-time">1:30 — 2:00</span>
+          <span class="block-name">Yoga Flow + Deep Stretching</span>
+          <span class="block-badge badge-mob">MOB · 30 min</span>
+        </div>
+        <div class="block-note">Extended recovery · Parasympathetic · Reduce cortisol before work week</div>
+        <div class="mobility-grid">
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Sun Salutation A ×3</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Warrior I & II (hold 30s/side)</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>90/90 Hip Switch ×8/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Deep Squat Hold 60s</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Couch Stretch 90s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Pigeon Stretch 90s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Supine Spinal Twist 90s/side</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Child's Pose 90s</span></div>
+          <div class="mobility-item"><input type="checkbox" class="day-check" data-day="sun"><span>Savasana 3–5 min</span></div>
+        </div>
+      </div>
+
+      <div class="block"><div class="session-notes"><label>Session Notes</label><textarea placeholder="Squat depth improving? Left/right leg difference? How do legs feel?"></textarea></div></div>
+    </div>
+  </div>
+
+  <!-- ===== WEEKLY JOURNAL ===== -->
+  <div class="journal-card">
+    <h2>📓 Weekly Journal</h2>
+    <div class="journal-grid">
+      <div class="journal-field">
+        <label>Energy Level (1–10)</label>
+        <div class="rating-row" data-group="energy">
+          <button class="rating-btn" onclick="setRating(this)">1</button><button class="rating-btn" onclick="setRating(this)">2</button><button class="rating-btn" onclick="setRating(this)">3</button><button class="rating-btn" onclick="setRating(this)">4</button><button class="rating-btn" onclick="setRating(this)">5</button><button class="rating-btn" onclick="setRating(this)">6</button><button class="rating-btn" onclick="setRating(this)">7</button><button class="rating-btn" onclick="setRating(this)">8</button><button class="rating-btn" onclick="setRating(this)">9</button><button class="rating-btn" onclick="setRating(this)">10</button>
+        </div>
+      </div>
+      <div class="journal-field">
+        <label>Soreness Level (1–10)</label>
+        <div class="rating-row" data-group="soreness">
+          <button class="rating-btn" onclick="setRating(this)">1</button><button class="rating-btn" onclick="setRating(this)">2</button><button class="rating-btn" onclick="setRating(this)">3</button><button class="rating-btn" onclick="setRating(this)">4</button><button class="rating-btn" onclick="setRating(this)">5</button><button class="rating-btn" onclick="setRating(this)">6</button><button class="rating-btn" onclick="setRating(this)">7</button><button class="rating-btn" onclick="setRating(this)">8</button><button class="rating-btn" onclick="setRating(this)">9</button><button class="rating-btn" onclick="setRating(this)">10</button>
+        </div>
+      </div>
+      <div class="journal-field">
+        <label>Sleep Quality (1–10)</label>
+        <div class="rating-row" data-group="sleep">
+          <button class="rating-btn" onclick="setRating(this)">1</button><button class="rating-btn" onclick="setRating(this)">2</button><button class="rating-btn" onclick="setRating(this)">3</button><button class="rating-btn" onclick="setRating(this)">4</button><button class="rating-btn" onclick="setRating(this)">5</button><button class="rating-btn" onclick="setRating(this)">6</button><button class="rating-btn" onclick="setRating(this)">7</button><button class="rating-btn" onclick="setRating(this)">8</button><button class="rating-btn" onclick="setRating(this)">9</button><button class="rating-btn" onclick="setRating(this)">10</button>
+        </div>
+      </div>
+      <div class="journal-field">
+        <label>Motivation (1–10)</label>
+        <div class="rating-row" data-group="motivation">
+          <button class="rating-btn" onclick="setRating(this)">1</button><button class="rating-btn" onclick="setRating(this)">2</button><button class="rating-btn" onclick="setRating(this)">3</button><button class="rating-btn" onclick="setRating(this)">4</button><button class="rating-btn" onclick="setRating(this)">5</button><button class="rating-btn" onclick="setRating(this)">6</button><button class="rating-btn" onclick="setRating(this)">7</button><button class="rating-btn" onclick="setRating(this)">8</button><button class="rating-btn" onclick="setRating(this)">9</button><button class="rating-btn" onclick="setRating(this)">10</button>
+        </div>
+      </div>
+      <div class="journal-field full">
+        <label>Protein Compliance This Week</label>
+        <div class="rating-row" data-group="protein">
+          <button class="rating-btn" onclick="setRating(this)" style="width:auto;padding:0 12px">Missed</button>
+          <button class="rating-btn" onclick="setRating(this)" style="width:auto;padding:0 12px">~100g</button>
+          <button class="rating-btn" onclick="setRating(this)" style="width:auto;padding:0 12px">~120g</button>
+          <button class="rating-btn" onclick="setRating(this)" style="width:auto;padding:0 12px">~140g</button>
+          <button class="rating-btn" onclick="setRating(this)" style="width:auto;padding:0 12px">150g+ ✓</button>
+        </div>
+      </div>
+      <div class="journal-field full"><label>Wins This Week</label><textarea placeholder="What went well? PRs, consistency, diet adherence..."></textarea></div>
+      <div class="journal-field full"><label>Struggles / Obstacles</label><textarea placeholder="What was hard? Missed sessions, energy issues, pain..."></textarea></div>
+      <div class="journal-field full"><label>Adjustments for Next Week</label><textarea placeholder="What will you change? Sleep earlier, prep meals, increase weight..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- ===== REFERENCE: HR ZONES ===== -->
+  <div class="ref-toggle no-print" id="refZones">
+    <div class="ref-toggle-header" onclick="toggleRef('refZones')">
+      <h2>📋 Reference: Heart Rate Zones</h2>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="ref-toggle-body">
+      <table class="ref-table">
+        <thead><tr><th>Zone</th><th>HR Range</th><th>Feels Like</th><th>Used When</th></tr></thead>
+        <tbody>
+          <tr><td>Zone 1 (Recovery)</td><td>93–112 bpm</td><td>Very easy walk</td><td>Warm-ups only</td></tr>
+          <tr><td><strong>Zone 2 (Aerobic)</strong></td><td><strong>112–130 bpm</strong></td><td>Full conversation · Nose breathing OK</td><td>Wed, Sat, Sun cardio</td></tr>
+          <tr><td>Zone 3 (AVOID)</td><td>130–149 bpm</td><td>Conversation hard</td><td>Grey zone — too hard for Z2, too easy for VO2</td></tr>
+          <tr><td><strong>Zone 4–5 (VO2 Max)</strong></td><td><strong>158–177 bpm</strong></td><td>Cannot speak · Very hard</td><td>Thursday intervals only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== REFERENCE: MILESTONES ===== -->
+  <div class="ref-toggle no-print" id="refMilestones">
+    <div class="ref-toggle-header" onclick="toggleRef('refMilestones')">
+      <h2>📋 Reference: Monthly Milestones</h2>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="ref-toggle-body">
+      <table class="ref-table">
+        <thead><tr><th>Month</th><th>Weight</th><th>BF%</th><th>Visceral</th><th>Cardio</th><th>Squat</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>87–89 kg</td><td>~29%</td><td>Lv 11</td><td>Walk 30 min Z2</td><td>Goblet 16kg×10</td></tr>
+          <tr><td>2</td><td>85–87</td><td>~27–28%</td><td>Lv 10–11</td><td>Jog 10 min</td><td>BB 40kg×8</td></tr>
+          <tr><td>3</td><td>82–84</td><td>~25–26%</td><td>Lv 10</td><td>Jog 20 min</td><td>50kg×8</td></tr>
+          <tr><td>4</td><td>80–82</td><td>~23–25%</td><td>Lv 9</td><td>Jog 30 min Z2</td><td>60kg×8</td></tr>
+          <tr><td>5</td><td>78–80</td><td>~22–23%</td><td>Lv 8–9</td><td>5K < 35 min</td><td>70kg×6</td></tr>
+          <tr><td>6</td><td>75–78</td><td>~20–22%</td><td>Lv 7–8 ✓</td><td>5K < 32 min</td><td>80+kg×6 (~1×BW)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== REFERENCE: NUTRITION ===== -->
+  <div class="ref-toggle no-print" id="refNutrition">
+    <div class="ref-toggle-header" onclick="toggleRef('refNutrition')">
+      <h2>📋 Reference: Daily Nutrition Targets</h2>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="ref-toggle-body">
+      <table class="ref-table">
+        <thead><tr><th>Meal</th><th>What to Eat</th><th>Protein</th></tr></thead>
+        <tbody>
+          <tr><td>Pre-workout (6 AM)</td><td>Banana + 10 almonds</td><td>~5g</td></tr>
+          <tr><td>Post-workout (8 AM)</td><td>3 eggs + 2 roti + whey shake</td><td>~48g</td></tr>
+          <tr><td>Lunch (1 PM)</td><td>Big dal + chicken/paneer + 1.5 roti + salad</td><td>~45g</td></tr>
+          <tr><td>Snack (4:30 PM)</td><td>Greek yogurt + nuts OR paneer tikka</td><td>~15g</td></tr>
+          <tr><td>Dinner (8 PM)</td><td>Dal + sabzi + 1 roti + protein</td><td>~30g</td></tr>
+          <tr><td>Optional (9:30 PM)</td><td>Turmeric milk + ½ scoop whey</td><td>~20g</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px;font-size:13px;color:var(--text-dim)"><strong>Daily target:</strong> 140–160g protein · Supplements: Whey 1–2 scoops, Creatine 5g, Vitamin D 2000–4000 IU, Fish Oil 2g, Magnesium 300–400mg</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== TOOLBAR ===== -->
+<div class="toolbar no-print">
+  <button class="toolbar-btn" onclick="window.print()">🖨 Print Week</button>
+  <button class="toolbar-btn primary" onclick="saveAsJSON()">💾 Export Data</button>
+  <button class="toolbar-btn" onclick="loadJSON()">📂 Import Data</button>
+  <button class="toolbar-btn danger" onclick="clearAll()">🗑 Reset Week</button>
+</div>
+
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script>
+// ===== DAY TOGGLE =====
+function toggleDay(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ===== REFERENCE TOGGLE =====
+function toggleRef(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ===== RATING BUTTONS =====
+function setRating(btn) {
+  const row = btn.parentElement;
+  row.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ===== PROGRESS CALCULATION =====
+function updateProgress() {
+  const days = ['wed', 'thu', 'sat', 'sun'];
+  const dayIds = ['progWed', 'progThu', 'progSat', 'progSun'];
+  const pctIds = ['pctWed', 'pctThu', 'pctSat', 'pctSun'];
+  let totalChecked = 0, totalBoxes = 0;
+
+  days.forEach((day, i) => {
+    const boxes = document.querySelectorAll(`.day-check[data-day="${day}"]`);
+    const checked = Array.from(boxes).filter(b => b.checked).length;
+    const total = boxes.length;
+    totalChecked += checked;
+    totalBoxes += total;
+
+    const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+    const circumference = 125.6;
+    const offset = circumference - (circumference * pct / 100);
+
+    document.getElementById(dayIds[i]).style.strokeDashoffset = offset;
+    document.getElementById(pctIds[i]).textContent = pct + '%';
+  });
+
+  const allPct = totalBoxes > 0 ? Math.round((totalChecked / totalBoxes) * 100) : 0;
+  const circumference = 125.6;
+  document.getElementById('progAll').style.strokeDashoffset = circumference - (circumference * allPct / 100);
+  document.getElementById('pctAll').textContent = allPct + '%';
+}
+
+// Listen to all checkboxes
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('day-check')) {
+    updateProgress();
+  }
+});
+
+// ===== SAVE / LOAD =====
+function gatherData() {
+  const data = {
+    meta: {
+      weekNum: document.getElementById('weekNum').value,
+      weekDate: document.getElementById('weekDate').value,
+      phase: document.getElementById('phase').value,
+      exportedAt: new Date().toISOString()
+    },
+    measurements: {},
+    days: {},
+    journal: {},
+    ratings: {}
+  };
+
+  // Measurements
+  document.querySelectorAll('.measurements-grid input').forEach(input => {
+    const label = input.closest('.measure-item')?.querySelector('label')?.textContent || '';
+    data.measurements[label] = input.value;
+  });
+
+  // Day data
+  ['wed', 'thu', 'sat', 'sun'].forEach(day => {
+    const section = document.querySelector(`[data-day="${day}"]`);
+    if (!section) return;
+    const dayData = { checkboxes: [], inputs: [], notes: '' };
+
+    section.querySelectorAll('.day-check').forEach((cb, i) => {
+      dayData.checkboxes.push(cb.checked);
+    });
+
+    section.querySelectorAll('.data-input, .cardio-field input:not([type="checkbox"])').forEach((inp, i) => {
+      dayData.inputs.push(inp.value);
+    });
+
+    const ta = section.querySelector('.session-notes textarea');
+    if (ta) dayData.notes = ta.value;
+
+    data.days[day] = dayData;
+  });
+
+  // Journal
+  document.querySelectorAll('.journal-field textarea').forEach(ta => {
+    const label = ta.closest('.journal-field')?.querySelector('label')?.textContent || '';
+    data.journal[label] = ta.value;
+  });
+
+  // Ratings
+  document.querySelectorAll('.rating-row').forEach(row => {
+    const group = row.dataset.group;
+    const active = row.querySelector('.rating-btn.active');
+    if (active) data.ratings[group] = active.textContent;
+  });
+
+  return data;
+}
+
+function saveAsJSON() {
+  const data = gatherData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `week-${data.meta.weekNum || 'x'}-${data.meta.weekDate || 'undated'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadJSON() {
+  document.getElementById('fileInput').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      restoreData(data);
+    } catch (err) {
+      alert('Invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function restoreData(data) {
+  if (data.meta) {
+    document.getElementById('weekNum').value = data.meta.weekNum || '';
+    document.getElementById('weekDate').value = data.meta.weekDate || '';
+    document.getElementById('phase').value = data.meta.phase || '';
+  }
+
+  // Measurements
+  if (data.measurements) {
+    const inputs = document.querySelectorAll('.measurements-grid input');
+    const labels = document.querySelectorAll('.measurements-grid label');
+    labels.forEach((lbl, i) => {
+      if (data.measurements[lbl.textContent] !== undefined) {
+        inputs[i].value = data.measurements[lbl.textContent];
+      }
+    });
+  }
+
+  // Days
+  if (data.days) {
+    ['wed', 'thu', 'sat', 'sun'].forEach(day => {
+      if (!data.days[day]) return;
+      const section = document.querySelector(`[data-day="${day}"]`);
+      if (!section) return;
+
+      const cbs = section.querySelectorAll('.day-check');
+      data.days[day].checkboxes?.forEach((val, i) => { if (cbs[i]) cbs[i].checked = val; });
+
+      const inps = section.querySelectorAll('.data-input, .cardio-field input:not([type="checkbox"])');
+      data.days[day].inputs?.forEach((val, i) => { if (inps[i]) inps[i].value = val; });
+
+      const ta = section.querySelector('.session-notes textarea');
+      if (ta && data.days[day].notes) ta.value = data.days[day].notes;
+    });
+  }
+
+  // Journal
+  if (data.journal) {
+    document.querySelectorAll('.journal-field textarea').forEach(ta => {
+      const label = ta.closest('.journal-field')?.querySelector('label')?.textContent || '';
+      if (data.journal[label]) ta.value = data.journal[label];
+    });
+  }
+
+  // Ratings
+  if (data.ratings) {
+    Object.entries(data.ratings).forEach(([group, val]) => {
+      const row = document.querySelector(`.rating-row[data-group="${group}"]`);
+      if (!row) return;
+      row.querySelectorAll('.rating-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === val);
+      });
+    });
+  }
+
+  updateProgress();
+}
+
+function clearAll() {
+  if (!confirm('Clear all data for this week? This cannot be undone.')) return;
+  document.querySelectorAll('input:not([type="file"])').forEach(i => {
+    if (i.type === 'checkbox') i.checked = false;
+    else i.value = '';
+  });
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+  updateProgress();
+}
+
+// Init
+updateProgress();
+</script>
+
+</body>
+</html>
