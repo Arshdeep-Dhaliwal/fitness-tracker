@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Nutrition Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F1117;
+  --bg-card: #181B24;
+  --bg-input: #12141B;
+  --border: #2A2E3B;
+  --text: #E4E7EF;
+  --text-dim: #8B90A0;
+  --text-muted: #5A5F72;
+  --accent: #4A9EFF;
+  --accent-dim: rgba(74,158,255,0.12);
+  --red: #FF6B6B;
+  --red-dim: rgba(255,107,107,0.12);
+  --amber: #FFB347;
+  --amber-dim: rgba(255,179,71,0.12);
+  --green: #6BCB77;
+  --green-dim: rgba(107,203,119,0.12);
+  --purple: #B8A9FF;
+  --purple-dim: rgba(184,169,255,0.12);
+  --cyan: #5CE0D8;
+  --cyan-dim: rgba(92,224,216,0.12);
+  --warm: #E8C07A;
+  --warm-dim: rgba(232,192,122,0.12);
+  --font: 'DM Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Fraunces', serif;
+  --radius: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); line-height:1.6; -webkit-font-smoothing:antialiased; }
+.container { max-width:720px; margin:0 auto; padding:20px 16px 40px; }
+
+/* Header */
+.hero {
+  background: linear-gradient(135deg, #1A2218 0%, #1A2744 60%, #2A1A2E 100%);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:32px 28px;
+  margin-bottom:24px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::after {
+  content:'';
+  position:absolute;
+  top:-40%;
+  right:-15%;
+  width:300px;
+  height:300px;
+  background:radial-gradient(circle, rgba(107,203,119,0.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero h1 {
+  font-family:var(--display);
+  font-size:26px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+.hero h1 span { color:var(--green); }
+.hero-sub { font-size:14px; color:var(--text-dim); margin-bottom:16px; }
+
+/* Day selector */
+.day-selector {
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.day-btn {
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:600;
+  padding:8px 14px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text-dim);
+  cursor:pointer;
+  transition:all 0.2s;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.day-btn:hover { border-color:var(--accent); color:var(--text); }
+.day-btn.active { background:var(--accent); border-color:var(--accent); color:white; }
+.day-btn.active.rest { background:var(--purple); border-color:var(--purple); }
+.day-btn .day-type {
+  display:block;
+  font-size:9px;
+  font-weight:400;
+  letter-spacing:0.5px;
+  margin-top:2px;
+  opacity:0.7;
+}
+
+/* Macro bar */
+.macro-bar {
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+  margin-bottom:24px;
+}
+.macro-item {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 12px;
+  text-align:center;
+}
+.macro-val {
+  font-family:var(--mono);
+  font-size:22px;
+  font-weight:700;
+}
+.macro-val.protein { color:var(--red); }
+.macro-val.cals { color:var(--amber); }
+.macro-val.carbs { color:var(--accent); }
+.macro-val.fat { color:var(--warm); }
+.macro-lbl {
+  font-size:10px;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  margin-top:2px;
+}
+
+/* Meal cards */
+.meal {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.meal-header {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+}
+.meal-time {
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-muted);
+  min-width:65px;
+}
+.meal-name {
+  font-family:var(--display);
+  font-size:15px;
+  font-weight:700;
+  flex:1;
+}
+.meal-protein {
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:600;
+  padding:3px 10px;
+  border-radius:20px;
+}
+.meal-protein.high { background:var(--red-dim); color:var(--red); }
+.meal-protein.med { background:var(--amber-dim); color:var(--amber); }
+.meal-protein.low { background:var(--green-dim); color:var(--green); }
+
+.meal-body { padding:14px 18px; }
+
+.meal-items {
+  list-style:none;
+}
+.meal-items li {
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  padding:5px 0;
+  font-size:14px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.meal-items li:last-child { border-bottom:none; }
+.meal-items .qty {
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--text-dim);
+  min-width:75px;
+  text-align:right;
+}
+.meal-items .item { color:var(--text); flex:1; }
+.meal-items .macro-hint {
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text-muted);
+  min-width:40px;
+  text-align:right;
+}
+
+.meal-note {
+  margin-top:10px;
+  padding:8px 12px;
+  background:rgba(255,255,255,0.02);
+  border-radius:6px;
+  font-size:12px;
+  color:var(--text-dim);
+  font-style:italic;
+}
+
+/* Supplement card */
+.supp-card {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:12px;
+  padding:18px;
+}
+.supp-card h3 {
+  font-family:var(--display);
+  font-size:15px;
+  font-weight:700;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.supp-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px 16px;
+}
+.supp-item {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 0;
+  font-size:13px;
+}
+.supp-dot {
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.supp-dot.am { background:var(--amber); }
+.supp-dot.pm { background:var(--purple); }
+.supp-dot.train { background:var(--red); }
+.supp-when {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-muted);
+  min-width:55px;
+}
+
+/* Divider */
+.time-divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0 12px;
+  color:var(--text-muted);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1px;
+}
+.time-divider::before, .time-divider::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+
+/* Section label */
+.section-label {
+  font-family:var(--mono);
+  font-size:10px;
+  font-weight:600;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  margin-bottom:8px;
+  padding-left:4px;
+}
+
+/* Daily total footer */
+.daily-total {
+  background: linear-gradient(135deg, #1A2218, #181B24);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-top:20px;
+}
+.daily-total h3 {
+  font-family:var(--display);
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:12px;
+}
+.total-row {
+  display:flex;
+  justify-content:space-between;
+  padding:4px 0;
+  font-size:13px;
+}
+.total-row .label { color:var(--text-dim); }
+.total-row .val { font-family:var(--mono); font-weight:600; }
+
+/* Why section */
+.why-card {
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-top:12px;
+}
+.why-card h3 {
+  font-family:var(--display);
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:10px;
+  color:var(--text-dim);
+}
+.why-card p {
+  font-size:13px;
+  color:var(--text-dim);
+  line-height:1.7;
+  margin-bottom:8px;
+}
+.why-card p:last-child { margin-bottom:0; }
+.why-card strong { color:var(--text); }
+
+/* Hidden state */
+.plan-view { display:none; }
+.plan-view.active { display:block; }
+
+@media (max-width:500px) {
+  .macro-bar { grid-template-columns:repeat(2,1fr); }
+  .supp-grid { grid-template-columns:1fr; }
+  .day-selector { gap:4px; }
+  .day-btn { padding:6px 10px; font-size:10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="hero">
+    <h1>Daily <span>Nutrition Plan</span></h1>
+    <div class="hero-sub">Protein-optimized · Indian diet · Vegetarian dinners · ~150g protein/day</div>
+    <div class="day-selector">
+      <button class="day-btn active" onclick="showPlan('train45')">
+        Wed<span class="day-type">Train 45m</span>
+      </button>
+      <button class="day-btn" onclick="showPlan('train45')">
+        Thu<span class="day-type">Train 45m</span>
+      </button>
+      <button class="day-btn" onclick="showPlan('train2h')">
+        Sat<span class="day-type">Train 2h</span>
+      </button>
+      <button class="day-btn" onclick="showPlan('train2h')">
+        Sun<span class="day-type">Train 2h</span>
+      </button>
+      <button class="day-btn" onclick="showPlan('rest')">
+        Mon<span class="day-type">Rest</span>
+      </button>
+      <button class="day-btn" onclick="showPlan('rest')">
+        Tue<span class="day-type">Rest</span>
+      </button>
+      <button class="day-btn" onclick="showPlan('rest')">
+        Fri<span class="day-type">Rest</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TRAINING DAY — 45 MIN (Wed / Thu)           -->
+  <!-- ============================================ -->
+  <div class="plan-view active" id="plan-train45">
+
+    <div class="macro-bar">
+      <div class="macro-item"><div class="macro-val protein">155g</div><div class="macro-lbl">Protein</div></div>
+      <div class="macro-item"><div class="macro-val cals">~2000</div><div class="macro-lbl">Calories</div></div>
+      <div class="macro-item"><div class="macro-val carbs">~190g</div><div class="macro-lbl">Carbs</div></div>
+      <div class="macro-item"><div class="macro-val fat">~70g</div><div class="macro-lbl">Fat</div></div>
+    </div>
+
+    <div class="time-divider">5:50 AM · PRE-WORKOUT</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">5:50 AM</span>
+        <span class="meal-name">Pre-Workout Fuel</span>
+        <span class="meal-protein low">8g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 cup</span><span class="item">Black tea</span><span class="macro-hint"></span></li>
+          <li><span class="qty">3</span><span class="item">Dates</span><span class="macro-hint">~60 cal</span></li>
+          <li><span class="qty">6–8</span><span class="item">Almonds</span><span class="macro-hint">~50 cal</span></li>
+          <li><span class="qty">½ scoop</span><span class="item">Pre-workout boost</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">Light and fast-digesting. Dates = quick carbs for energy. Almonds = sustained fuel. Black tea caffeine kicks in by workout start. Pre-workout on hard days (Thu VO2 max) only — skip on Wed if you prefer.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">6:15–7:00 · TRAINING</div>
+
+    <div class="time-divider">7:15 AM · POST-WORKOUT BREAKFAST</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">7:15 AM</span>
+        <span class="meal-name">Post-Workout Breakfast</span>
+        <span class="meal-protein high">52g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">3 whole</span><span class="item">Eggs (scrambled in ½ tsp ghee, or boiled)</span><span class="macro-hint">18g P</span></li>
+          <li><span class="qty">¾ cup dry</span><span class="item">Oatmeal cooked with milk</span><span class="macro-hint">10g P</span></li>
+          <li><span class="qty">3–4</span><span class="item">Walnut halves (in oatmeal)</span><span class="macro-hint">2g P</span></li>
+          <li><span class="qty">1 tbsp</span><span class="item">Iranian green raisins (in oatmeal)</span><span class="macro-hint"></span></li>
+          <li><span class="qty">1 scoop</span><span class="item">Whey protein shake (with water or milk)</span><span class="macro-hint">25g P</span></li>
+        </ul>
+        <div class="meal-note">This is your biggest protein meal. Muscle protein synthesis peaks 1–2 hours post-workout. Eggs + whey = fast-absorbing complete proteins. Oatmeal refills glycogen. Walnuts + raisins make the oatmeal taste good so you actually eat it every day.</div>
+      </div>
+    </div>
+
+    <div class="supp-card">
+      <h3>💊 Morning Supplements (with breakfast)</h3>
+      <div class="supp-grid">
+        <div class="supp-item"><span class="supp-dot am"></span><span>Creatine 5g</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Vitamin D3</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Omega-3 (Costco)</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Multivitamin</span><span class="supp-when">· daily</span></div>
+      </div>
+    </div>
+
+    <div class="time-divider">12:30 PM · LUNCH</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">12:30 PM</span>
+        <span class="meal-name">Chicken Lunch</span>
+        <span class="meal-protein high">42g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 large</span><span class="item">Chicken wrap OR chicken salad</span><span class="macro-hint">35g P</span></li>
+          <li><span class="qty">1 cup</span><span class="item">Homemade kefir</span><span class="macro-hint">7g P</span></li>
+        </ul>
+        <div class="meal-note">Alternate chicken wrap and chicken salad across days to avoid fatigue. Kefir = probiotics + protein + gut health. Keep lunch simple — this is your work meal.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">4:00 PM · CHAI TIME 🫖</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">4:00 PM</span>
+        <span class="meal-name">Family Chai + Snack</span>
+        <span class="meal-protein med">14g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 cup</span><span class="item">Masala chai (milk-based, ½ tsp sugar max)</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">6–8</span><span class="item">Almonds</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">3–4</span><span class="item">Walnut halves</span><span class="macro-hint">2g P</span></li>
+          <li><span class="qty">2</span><span class="item">Dates</span><span class="macro-hint"></span></li>
+          <li><span class="qty">1–2</span><span class="item">Cookies</span><span class="macro-hint">~120 cal</span></li>
+        </ul>
+        <div class="meal-note">Family time is sacred — enjoy it. Nuts add protein and healthy fats. 1–2 cookies won't derail anything. The psychological benefit of this daily ritual far outweighs the ~200 calories. Reduce sugar in chai to half of what you currently use.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">7:30 PM · DINNER (VEGETARIAN) 🥬</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">7:30 PM</span>
+        <span class="meal-name">Family Dinner — Vegetarian</span>
+        <span class="meal-protein med">22g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 large bowl</span><span class="item">Dal (double your current portion — this is key)</span><span class="macro-hint">15g P</span></li>
+          <li><span class="qty">1 serving</span><span class="item">Sabzi (whatever family is eating)</span><span class="macro-hint">3g P</span></li>
+          <li><span class="qty">1.5</span><span class="item">Whole wheat roti (with ½ tsp ghee)</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">small bowl</span><span class="item">Dahi (plain curd on the side)</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">Eat the dal FIRST — finish it before touching roti. This ensures you hit protein and naturally eat less carbs. 1.5 roti (not 2–3). Ghee is fine at ½ tsp — it's satiating and has butyrate. Dahi aids digestion.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">10:00 PM · BEFORE BED</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">10:00 PM</span>
+        <span class="meal-name">Night Recovery</span>
+        <span class="meal-protein med">17g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 glass</span><span class="item">Warm milk</span><span class="macro-hint">8g P</span></li>
+          <li><span class="qty">1 serving</span><span class="item">Liquid collagen supplement (in milk)</span><span class="macro-hint">9g P</span></li>
+        </ul>
+        <div class="meal-note">Casein in milk = slow-digesting protein that feeds muscles overnight. Collagen supports joint recovery (critical when starting a new training program at 34). Warm milk also promotes sleep onset.</div>
+      </div>
+    </div>
+
+    <div class="supp-card">
+      <h3>🌙 Evening Supplements (with dinner or bedtime)</h3>
+      <div class="supp-grid">
+        <div class="supp-item"><span class="supp-dot pm"></span><span>Magnesium bisglycinate 300mg</span><span class="supp-when">· bedtime</span></div>
+        <div class="supp-item"><span class="supp-dot pm"></span><span>B12</span><span class="supp-when">· w/ dinner</span></div>
+        <div class="supp-item"><span class="supp-dot pm"></span><span>Liquid collagen</span><span class="supp-when">· in milk</span></div>
+      </div>
+    </div>
+
+    <div class="daily-total">
+      <h3>📊 Daily Totals — Training 45 min (Wed / Thu)</h3>
+      <div class="total-row"><span class="label">Pre-workout</span><span class="val">8g protein · ~160 cal</span></div>
+      <div class="total-row"><span class="label">Post-workout breakfast</span><span class="val">52g protein · ~620 cal</span></div>
+      <div class="total-row"><span class="label">Lunch</span><span class="val">42g protein · ~480 cal</span></div>
+      <div class="total-row"><span class="label">Chai + snack</span><span class="val">14g protein · ~330 cal</span></div>
+      <div class="total-row"><span class="label">Dinner (veg)</span><span class="val">22g protein · ~380 cal</span></div>
+      <div class="total-row"><span class="label">Before bed</span><span class="val">17g protein · ~170 cal</span></div>
+      <div class="total-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px">
+        <span class="label" style="font-weight:700;color:var(--text)">TOTAL</span>
+        <span class="val" style="color:var(--green)">~155g protein · ~2,140 cal</span>
+      </div>
+      <div class="total-row"><span class="label">Estimated deficit</span><span class="val" style="color:var(--amber)">~300–400 cal below TDEE</span></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TRAINING DAY — 2 HOURS (Sat / Sun)          -->
+  <!-- ============================================ -->
+  <div class="plan-view" id="plan-train2h">
+
+    <div class="macro-bar">
+      <div class="macro-item"><div class="macro-val protein">162g</div><div class="macro-lbl">Protein</div></div>
+      <div class="macro-item"><div class="macro-val cals">~2250</div><div class="macro-lbl">Calories</div></div>
+      <div class="macro-item"><div class="macro-val carbs">~220g</div><div class="macro-lbl">Carbs</div></div>
+      <div class="macro-item"><div class="macro-val fat">~75g</div><div class="macro-lbl">Fat</div></div>
+    </div>
+
+    <div class="time-divider">5:50 AM · PRE-WORKOUT (BIGGER — 2 HR SESSION)</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">5:50 AM</span>
+        <span class="meal-name">Pre-Workout Fuel (Extended)</span>
+        <span class="meal-protein low">10g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 cup</span><span class="item">Black tea</span><span class="macro-hint"></span></li>
+          <li><span class="qty">3–4</span><span class="item">Dates</span><span class="macro-hint">~80 cal</span></li>
+          <li><span class="qty">8–10</span><span class="item">Almonds</span><span class="macro-hint">~70 cal</span></li>
+          <li><span class="qty">small piece</span><span class="item">Khoya (~30g)</span><span class="macro-hint">5g P</span></li>
+          <li><span class="qty">½ scoop</span><span class="item">Pre-workout boost</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">Longer session = more fuel needed. Khoya adds caloric density and sustains energy through the second hour. Dates provide immediate glycogen. Pre-workout boost recommended for these long sessions.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">6:00–8:00 · TRAINING (2 HOURS)</div>
+
+    <div class="time-divider">8:15 AM · POST-WORKOUT BREAKFAST</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">8:15 AM</span>
+        <span class="meal-name">Post-Workout Breakfast (Bigger)</span>
+        <span class="meal-protein high">55g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">3 whole</span><span class="item">Eggs (scrambled in ½ tsp ghee, or boiled)</span><span class="macro-hint">18g P</span></li>
+          <li><span class="qty">1 cup dry</span><span class="item">Oatmeal cooked with milk (larger portion)</span><span class="macro-hint">12g P</span></li>
+          <li><span class="qty">4–5</span><span class="item">Walnut halves (in oatmeal)</span><span class="macro-hint">3g P</span></li>
+          <li><span class="qty">1 tbsp</span><span class="item">Iranian green raisins (in oatmeal)</span><span class="macro-hint"></span></li>
+          <li><span class="qty">1 scoop</span><span class="item">Whey protein shake (with milk)</span><span class="macro-hint">25g P</span></li>
+        </ul>
+        <div class="meal-note">After 2 hours of training, refuel aggressively. Larger oatmeal portion replenishes glycogen. Whey with milk (not water) adds extra protein and calories. You've earned this meal — don't hold back.</div>
+      </div>
+    </div>
+
+    <div class="supp-card">
+      <h3>💊 Morning Supplements (with breakfast)</h3>
+      <div class="supp-grid">
+        <div class="supp-item"><span class="supp-dot am"></span><span>Creatine 5g</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Vitamin D3</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Omega-3 (Costco)</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Multivitamin</span><span class="supp-when">· daily</span></div>
+      </div>
+    </div>
+
+    <div class="time-divider">12:30 PM · LUNCH</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">12:30 PM</span>
+        <span class="meal-name">Chicken Lunch</span>
+        <span class="meal-protein high">42g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 large</span><span class="item">Chicken wrap OR chicken salad</span><span class="macro-hint">35g P</span></li>
+          <li><span class="qty">1 cup</span><span class="item">Homemade kefir</span><span class="macro-hint">7g P</span></li>
+        </ul>
+        <div class="meal-note">Same as short training days. Keep it simple. Chicken wrap if you need more energy (carbs from wrap). Chicken salad if you feel well-fueled from the bigger breakfast.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">4:00 PM · CHAI TIME 🫖</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">4:00 PM</span>
+        <span class="meal-name">Family Chai + Snack</span>
+        <span class="meal-protein med">16g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 cup</span><span class="item">Masala chai</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">8–10</span><span class="item">Almonds</span><span class="macro-hint">5g P</span></li>
+          <li><span class="qty">4–5</span><span class="item">Walnut halves</span><span class="macro-hint">3g P</span></li>
+          <li><span class="qty">2–3</span><span class="item">Dates</span><span class="macro-hint"></span></li>
+          <li><span class="qty">1–2</span><span class="item">Cookies</span><span class="macro-hint"></span></li>
+          <li><span class="qty">small piece</span><span class="item">Khoya (weekend treat)</span><span class="macro-hint">4g P</span></li>
+        </ul>
+        <div class="meal-note">Weekends allow slightly more at chai time since you've burned 700+ calories training. Extra nuts and a small piece of khoya. Family time stays enjoyable.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">7:30 PM · DINNER (VEGETARIAN) 🥬</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">7:30 PM</span>
+        <span class="meal-name">Family Dinner — Vegetarian</span>
+        <span class="meal-protein med">22g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 large bowl</span><span class="item">Dal (double portion — eat all of it first)</span><span class="macro-hint">15g P</span></li>
+          <li><span class="qty">1 serving</span><span class="item">Sabzi</span><span class="macro-hint">3g P</span></li>
+          <li><span class="qty">1.5</span><span class="item">Whole wheat roti (½ tsp ghee)</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">small bowl</span><span class="item">Dahi</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">Same as every other day. Family dinner stays consistent — that's the point. Dal first, then roti. Dahi on the side for digestion.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">10:00 PM · BEFORE BED</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">10:00 PM</span>
+        <span class="meal-name">Night Recovery</span>
+        <span class="meal-protein med">17g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 glass</span><span class="item">Warm milk</span><span class="macro-hint">8g P</span></li>
+          <li><span class="qty">1 serving</span><span class="item">Liquid collagen (in milk)</span><span class="macro-hint">9g P</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="supp-card">
+      <h3>🌙 Evening Supplements</h3>
+      <div class="supp-grid">
+        <div class="supp-item"><span class="supp-dot pm"></span><span>Magnesium bisglycinate 300mg</span><span class="supp-when">· bedtime</span></div>
+        <div class="supp-item"><span class="supp-dot pm"></span><span>B12</span><span class="supp-when">· w/ dinner</span></div>
+        <div class="supp-item"><span class="supp-dot pm"></span><span>Liquid collagen</span><span class="supp-when">· in milk</span></div>
+      </div>
+    </div>
+
+    <div class="daily-total">
+      <h3>📊 Daily Totals — Training 2 hr (Sat / Sun)</h3>
+      <div class="total-row"><span class="label">Pre-workout</span><span class="val">10g protein · ~250 cal</span></div>
+      <div class="total-row"><span class="label">Post-workout breakfast</span><span class="val">55g protein · ~700 cal</span></div>
+      <div class="total-row"><span class="label">Lunch</span><span class="val">42g protein · ~480 cal</span></div>
+      <div class="total-row"><span class="label">Chai + snack</span><span class="val">16g protein · ~400 cal</span></div>
+      <div class="total-row"><span class="label">Dinner (veg)</span><span class="val">22g protein · ~380 cal</span></div>
+      <div class="total-row"><span class="label">Before bed</span><span class="val">17g protein · ~170 cal</span></div>
+      <div class="total-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px">
+        <span class="label" style="font-weight:700;color:var(--text)">TOTAL</span>
+        <span class="val" style="color:var(--green)">~162g protein · ~2,380 cal</span>
+      </div>
+      <div class="total-row"><span class="label">Estimated deficit</span><span class="val" style="color:var(--amber)">~200–300 cal (lighter deficit on heavy days)</span></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- REST DAY (Mon / Tue / Fri)                   -->
+  <!-- ============================================ -->
+  <div class="plan-view" id="plan-rest">
+
+    <div class="macro-bar">
+      <div class="macro-item"><div class="macro-val protein">138g</div><div class="macro-lbl">Protein</div></div>
+      <div class="macro-item"><div class="macro-val cals">~1800</div><div class="macro-lbl">Calories</div></div>
+      <div class="macro-item"><div class="macro-val carbs">~160g</div><div class="macro-lbl">Carbs</div></div>
+      <div class="macro-item"><div class="macro-val fat">~65g</div><div class="macro-lbl">Fat</div></div>
+    </div>
+
+    <div class="time-divider">6:00 AM · MORNING</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">6:00 AM</span>
+        <span class="meal-name">Morning Tea</span>
+        <span class="meal-protein low">0g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 cup</span><span class="item">Black tea</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">No pre-workout, no rush. Ease into the day.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">7:30 AM · BREAKFAST</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">7:30 AM</span>
+        <span class="meal-name">Rest Day Breakfast (Lighter)</span>
+        <span class="meal-protein high">40g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">3 whole</span><span class="item">Eggs (boiled or scrambled in ½ tsp ghee)</span><span class="macro-hint">18g P</span></li>
+          <li><span class="qty">½ cup dry</span><span class="item">Oatmeal cooked with milk (smaller portion)</span><span class="macro-hint">8g P</span></li>
+          <li><span class="qty">3–4</span><span class="item">Walnut halves (in oatmeal)</span><span class="macro-hint">2g P</span></li>
+          <li><span class="qty">1 tbsp</span><span class="item">Iranian green raisins</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">No whey shake on rest days — you'll hit protein through food. Smaller oatmeal portion since you're not refueling from a workout. Eggs stay at 3 (protein anchor).</div>
+      </div>
+    </div>
+
+    <div class="supp-card">
+      <h3>💊 Morning Supplements (with breakfast)</h3>
+      <div class="supp-grid">
+        <div class="supp-item"><span class="supp-dot am"></span><span>Creatine 5g</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Vitamin D3</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Omega-3 (Costco)</span><span class="supp-when">· daily</span></div>
+        <div class="supp-item"><span class="supp-dot am"></span><span>Multivitamin</span><span class="supp-when">· daily</span></div>
+      </div>
+    </div>
+
+    <div class="time-divider">12:30 PM · LUNCH</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">12:30 PM</span>
+        <span class="meal-name">Chicken Lunch</span>
+        <span class="meal-protein high">42g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 large</span><span class="item">Chicken salad (prefer salad over wrap on rest days)</span><span class="macro-hint">35g P</span></li>
+          <li><span class="qty">1 cup</span><span class="item">Homemade kefir</span><span class="macro-hint">7g P</span></li>
+        </ul>
+        <div class="meal-note">Prefer chicken salad over wrap on rest days — lower carbs when not training. Same protein either way.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">4:00 PM · CHAI TIME 🫖</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">4:00 PM</span>
+        <span class="meal-name">Family Chai + Snack</span>
+        <span class="meal-protein med">12g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 cup</span><span class="item">Masala chai</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">6–8</span><span class="item">Almonds</span><span class="macro-hint">4g P</span></li>
+          <li><span class="qty">3–4</span><span class="item">Walnut halves</span><span class="macro-hint">2g P</span></li>
+          <li><span class="qty">2</span><span class="item">Dates</span><span class="macro-hint"></span></li>
+          <li><span class="qty">1</span><span class="item">Cookie (just one on rest days)</span><span class="macro-hint">~60 cal</span></li>
+        </ul>
+        <div class="meal-note">Slightly smaller snack on rest days. One cookie instead of two. You're not refueling — this is maintenance. Nuts stay the same (healthy fats + protein).</div>
+      </div>
+    </div>
+
+    <div class="time-divider">7:30 PM · DINNER (VEGETARIAN) 🥬</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">7:30 PM</span>
+        <span class="meal-name">Family Dinner — Vegetarian</span>
+        <span class="meal-protein med">22g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 large bowl</span><span class="item">Dal (double portion — always)</span><span class="macro-hint">15g P</span></li>
+          <li><span class="qty">1 serving</span><span class="item">Sabzi</span><span class="macro-hint">3g P</span></li>
+          <li><span class="qty">1</span><span class="item">Whole wheat roti (only 1 on rest days)</span><span class="macro-hint">3g P</span></li>
+          <li><span class="qty">small bowl</span><span class="item">Dahi</span><span class="macro-hint"></span></li>
+        </ul>
+        <div class="meal-note">Only difference from training days: 1 roti instead of 1.5. Slightly lower carbs on rest days. Dal and sabzi stay the same.</div>
+      </div>
+    </div>
+
+    <div class="time-divider">10:00 PM · BEFORE BED</div>
+
+    <div class="meal">
+      <div class="meal-header">
+        <span class="meal-time">10:00 PM</span>
+        <span class="meal-name">Night Recovery</span>
+        <span class="meal-protein med">22g P</span>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-items">
+          <li><span class="qty">1 glass</span><span class="item">Warm milk</span><span class="macro-hint">8g P</span></li>
+          <li><span class="qty">1 serving</span><span class="item">Liquid collagen (in milk)</span><span class="macro-hint">9g P</span></li>
+          <li><span class="qty">½ scoop</span><span class="item">Whey protein (in milk — rest day protein insurance)</span><span class="macro-hint">13g P</span></li>
+        </ul>
+        <div class="meal-note">On rest days, whey moves to bedtime since there's no post-workout window. Mixed into warm milk, it becomes a casein-whey blend for overnight muscle protein synthesis. Your body still repairs on rest days.</div>
+      </div>
+    </div>
+
+    <div class="supp-card">
+      <h3>🌙 Evening Supplements</h3>
+      <div class="supp-grid">
+        <div class="supp-item"><span class="supp-dot pm"></span><span>Magnesium bisglycinate 300mg</span><span class="supp-when">· bedtime</span></div>
+        <div class="supp-item"><span class="supp-dot pm"></span><span>B12</span><span class="supp-when">· w/ dinner</span></div>
+        <div class="supp-item"><span class="supp-dot pm"></span><span>Liquid collagen</span><span class="supp-when">· in milk</span></div>
+      </div>
+    </div>
+
+    <div class="daily-total">
+      <h3>📊 Daily Totals — Rest Day (Mon / Tue / Fri)</h3>
+      <div class="total-row"><span class="label">Morning tea</span><span class="val">0g protein · ~5 cal</span></div>
+      <div class="total-row"><span class="label">Breakfast</span><span class="val">40g protein · ~440 cal</span></div>
+      <div class="total-row"><span class="label">Lunch</span><span class="val">42g protein · ~420 cal</span></div>
+      <div class="total-row"><span class="label">Chai + snack</span><span class="val">12g protein · ~280 cal</span></div>
+      <div class="total-row"><span class="label">Dinner (veg)</span><span class="val">22g protein · ~340 cal</span></div>
+      <div class="total-row"><span class="label">Before bed</span><span class="val">22g protein · ~230 cal</span></div>
+      <div class="total-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px">
+        <span class="label" style="font-weight:700;color:var(--text)">TOTAL</span>
+        <span class="val" style="color:var(--green)">~138g protein · ~1,715 cal</span>
+      </div>
+      <div class="total-row"><span class="label">Estimated deficit</span><span class="val" style="color:var(--amber)">~500–600 cal (steeper deficit on rest days = accelerates fat loss)</span></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SUPPLEMENT RATIONALE (always visible)        -->
+  <!-- ============================================ -->
+  <div class="why-card" style="margin-top:24px">
+    <h3>🧠 Why These Supplements — And Nothing More</h3>
+    <p><strong>Creatine 5g daily</strong> — Most studied supplement in existence. Improves strength output by 5–10%. Also crosses the blood-brain barrier and improves cognitive function, working memory, and processing speed. Shown to be neuroprotective. Cheap, safe, effective. Take it every single day regardless of training.</p>
+    <p><strong>Vitamin D3</strong> — South Asians living in Canada have near-universal deficiency. D3 regulates testosterone production, immune function, bone density, and mood. At your latitude, supplementation is mandatory year-round.</p>
+    <p><strong>Omega-3 (Costco fish oil)</strong> — Your visceral fat level of 12 means chronic low-grade inflammation. EPA/DHA directly reduce inflammatory markers (CRP, IL-6). Also cardioprotective and supports brain health. Take with breakfast (fat-soluble, needs food for absorption).</p>
+    <p><strong>Magnesium bisglycinate 300mg</strong> — Bisglycinate form crosses the blood-brain barrier (unlike citrate or oxide). Improves sleep quality and onset, reduces muscle cramps, supports 300+ enzymatic reactions. Take at bedtime — the glycine has calming effects.</p>
+    <p><strong>B12</strong> — Your dinners are vegetarian, limiting B12 sources. Essential for neurological function, red blood cell formation, and energy metabolism. Deficiency causes fatigue and cognitive fog.</p>
+    <p><strong>Collagen</strong> — Joint protection as you begin a new training program at 34. Supports connective tissue repair, tendon health, and skin elasticity. Mix into warm milk (heat doesn't damage collagen peptides).</p>
+    <p><strong>Multivitamin</strong> — Insurance policy. Covers micronutrient gaps. Not a substitute for real food but fills holes, especially during a caloric deficit.</p>
+    <p><strong>Pre-workout boost</strong> — Training days only. Caffeine improves power output, endurance, and perceived effort. Use on Thursday (VO2 max — hardest session) and Sat/Sun (2-hour sessions). Skip on Wednesday if black tea suffices.</p>
+    <p><strong>Whey protein</strong> — Not a supplement, it's food. Fastest-absorbing complete protein. Post-workout on training days, bedtime on rest days. Your single most important dietary tool for hitting 140–160g protein on an Indian diet.</p>
+    <p style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);color:var(--text)"><strong>What you DON'T need:</strong> BCAAs (whey already contains them), glutamine (adequate in food), fat burners (Zone 2 cardio is your fat burner), testosterone boosters (fix sleep, D3, and training first — they work better).</p>
+  </div>
+
+  <div class="why-card">
+    <h3>📝 The 4 Rules That Make This Work</h3>
+    <p><strong>1. Eat protein first at every meal.</strong> Dal before roti. Eggs before oatmeal. Chicken before sides. This naturally reduces carb intake and improves satiety.</p>
+    <p><strong>2. Same meals every day, only portions change.</strong> Training days get more oatmeal, an extra cookie, and slightly bigger snacks. Rest days are tighter. You never have to think about what to eat.</p>
+    <p><strong>3. Dinner is dinner — don't fight it.</strong> Family vegetarian dinner stays exactly as-is. The only change: double dal, reduce roti by half. Your family won't even notice.</p>
+    <p><strong>4. Whey is non-negotiable.</strong> Without it, you'll hit ~110g protein. With one scoop, you hit 140–155g. It's the difference between losing muscle and building it during fat loss.</p>
+  </div>
+
+</div>
+
+<script>
+function showPlan(type) {
+  document.querySelectorAll('.plan-view').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('plan-' + type).classList.add('active');
+  
+  // Activate clicked button
+  event.target.closest('.day-btn').classList.add('active');
+}
+
+// Make day buttons work properly with event delegation
+document.querySelectorAll('.day-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
